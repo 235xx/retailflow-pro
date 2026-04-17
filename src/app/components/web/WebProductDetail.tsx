@@ -5,10 +5,11 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, ReferenceLine, AreaChart, Area,
 } from 'recharts';
-import { salesTrendData, mockAlerts, mockProducts } from '../../data/mockData';
+import { salesTrendData, mockAlerts } from '../../data/mockData';
 import { WebLayout } from './WebLayout';
 import { DispatchApprovalDialog } from '../dialogs/DispatchApprovalDialog';
 import { toast } from 'sonner';
+import { useAppData } from '../../context/AppDataContext';
 
 // ── Morandi palette ──────────────────────────────────────
 const M = {
@@ -42,13 +43,14 @@ function ChartTooltip({ active, payload, label, prefix = '' }: any) {
 export function WebProductDetail() {
   const navigate = useNavigate();
   const { productId } = useParams();
+  const { products } = useAppData();
   const [quantity, setQuantity] = useState(50);
   const [turnoverDays, setTurnoverDays] = useState(7);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const alert = mockAlerts.find(a => a.id === productId);
-  const product = mockProducts.find(p => p.id === productId);
+  const product = products.find(p => p.id === productId);
 
   const displayName = alert?.productName || product?.name || 'Nestle Milk Powder (900g)';
   const displayLocation = alert?.location || "People's Square Flagship Store";

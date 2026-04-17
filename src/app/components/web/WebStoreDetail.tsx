@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import {
   ArrowLeft, Package, TrendingUp, AlertTriangle, ChevronRight,
@@ -7,7 +7,7 @@ import {
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
-import { mockStores, mockProducts, salesTrendData } from '../../data/mockData';
+import { mockStores, salesTrendData } from '../../data/mockData';
 import { useAppData } from '../../context/AppDataContext';
 import { WebLayout } from './WebLayout';
 
@@ -48,18 +48,18 @@ function ChartTooltip({ active, payload, label }: any) {
 export function WebStoreDetail() {
   const navigate = useNavigate();
   const { storeId } = useParams();
-  const { alerts } = useAppData();
+  const { alerts, products } = useAppData();
   const [activeTab, setActiveTab] = useState<'inventory' | 'alerts' | 'trends'>('inventory');
   const [searchText, setSearchText] = useState('');
 
   const store = mockStores.find(s => s.id === storeId) || mockStores[0];
   const currentStoreId = store.id;
-  const storeProducts = mockProducts.filter(p => p.storeId === currentStoreId);
+  const storeProducts = useMemo(() => products.filter(p => p.storeId === currentStoreId), [products, currentStoreId]);
   const storeAlerts = alerts.filter(a => a.storeId === currentStoreId);
 
-  const filteredProducts = storeProducts.filter(p =>
+  const filteredProducts = useMemo(() => storeProducts.filter(p =>
     !searchText || p.name.includes(searchText) || p.sku.includes(searchText)
-  );
+  ), [storeProducts, searchText]);
 
   const alertCount = storeAlerts.length;
   const healthColor = store.stockHealth > 85 ? M.success : M.warning;

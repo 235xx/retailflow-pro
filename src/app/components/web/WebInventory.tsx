@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, Package, AlertTriangle, ChevronRight, ArrowUpRight, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { mockProducts, mockStores, inventoryDistribution } from '../../data/mockData';
+import { mockStores, inventoryDistribution } from '../../data/mockData';
 import { WebLayout } from './WebLayout';
+import { useAppData } from '../../context/AppDataContext';
 
 const statusConfig = {
   normal: { label: 'Normal', bg: '#E5EEEC', text: '#6A9A7A', border: '#C8DDD9' },
@@ -19,14 +20,15 @@ const barColors: Record<string, string> = {
 
 export function WebInventory() {
   const navigate = useNavigate();
+  const { products } = useAppData();
   const [searchText, setSearchText] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedStore, setSelectedStore] = useState('All');
 
-  const categories = ['All', ...Array.from(new Set(mockProducts.map(p => p.category)))];
+  const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
 
-  const filteredProducts = mockProducts.filter(p => {
+  const filteredProducts = useMemo(() => products.filter(p => {
     if (categoryFilter !== 'All' && p.category !== categoryFilter) return false;
     if (statusFilter !== 'All') {
       if (statusFilter === 'Low' && p.status !== 'low') return false;
@@ -35,16 +37,16 @@ export function WebInventory() {
     }
     if (searchText && !p.name.includes(searchText) && !p.sku.includes(searchText)) return false;
     return true;
-  });
+  }), [products, categoryFilter, statusFilter, searchText]);
 
-  const alertProducts = mockProducts.filter(p => p.status !== 'normal');
+  const alertProducts = useMemo(() => products.filter(p => p.status !== 'normal'), [products]);
 
-  const summaryCards = [
-    { label: 'Total Products', value: mockProducts.length, sub: 'SKUs', bgFrom: '#E8F0F5', bgTo: '#CCDBE5', border: '#CCDBE5', iconColor: '#8B9EAD' },
-    { label: 'Normal Stock', value: mockProducts.filter(p => p.status === 'normal').length, sub: 'products', bgFrom: '#E5EEEC', bgTo: '#C8DDD9', border: '#C8DDD9', iconColor: '#6A9A7A' },
-    { label: 'Low Stock Alert', value: mockProducts.filter(p => p.status === 'low').length, sub: 'need restock', bgFrom: '#F5EDE0', bgTo: '#E8D8C0', border: '#DECA9A', iconColor: '#A87A45' },
-    { label: 'Out of Stock', value: mockProducts.filter(p => p.status === 'out').length, sub: 'urgent', bgFrom: '#EFE5E5', bgTo: '#E0D0D0', border: '#D4AAAA', iconColor: '#BF8888' },
-  ];
+  const summaryCards = useMemo(() => [
+    { label: 'Total Products', value: products.length, sub: 'SKUs', bgFrom: '#E8F0F5', bgTo: '#CCDBE5', border: '#CCDBE5', iconColor: '#8B9EAD' },
+    { label: 'Normal Stock', value: products.filter(p => p.status === 'normal').length, sub: 'products', bgFrom: '#E5EEEC', bgTo: '#C8DDD9', border: '#C8DDD9', iconColor: '#6A9A7A' },
+    { label: 'Low Stock Alert', value: products.filter(p => p.status === 'low').length, sub: 'need restock', bgFrom: '#F5EDE0', bgTo: '#E8D8C0', border: '#DECA9A', iconColor: '#A87A45' },
+    { label: 'Out of Stock', value: products.filter(p => p.status === 'out').length, sub: 'urgent', bgFrom: '#EFE5E5', bgTo: '#E0D0D0', border: '#D4AAAA', iconColor: '#BF8888' },
+  ], [products]);
 
   const cardStyle = { background: '#F7F6F4', border: '1px solid #E5E0D8', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' };
 
@@ -55,7 +57,7 @@ export function WebInventory() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold" style={{ color: '#2C3540' }}>Inventory Management</h2>
-            <p className="text-sm mt-1" style={{ color: '#9AA0A8' }}>Real-time stock monitoring · {mockProducts.length} SKUs</p>
+            <p className="text-sm mt-1" style={{ color: '#9AA0A8' }}>Real-time stock monitoring · {products.length} SKUs</p>
           </div>
           <button
             className="flex items-center gap-2 px-4 py-2 text-white rounded-xl font-medium transition-colors"

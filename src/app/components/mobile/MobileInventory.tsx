@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, Package, TrendingDown, AlertTriangle, ChevronRight, Zap, Filter } from 'lucide-react';
-import { mockProducts } from '../../data/mockData';
 import { MobileLayout } from './MobileLayout';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useMode } from '../../context/ModeContext';
+import { useAppData } from '../../context/AppDataContext';
 import { F } from '../../colors';
 
 const statusConfig = {
@@ -24,28 +24,29 @@ const barColors: Record<string, string> = {
 export function MobileInventory() {
   const navigate = useNavigate();
   const { isField } = useMode();
+  const { products } = useAppData();
   const [searchText, setSearchText] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState<'all' | 'low' | 'out' | 'overstock' | 'normal' | 'anomalous'>('all');
 
-  const categories = ['All', ...Array.from(new Set(mockProducts.map(p => p.category)))];
+  const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
 
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = useMemo(() => products.filter(product => {
     if (categoryFilter !== 'All' && product.category !== categoryFilter) return false;
     if (statusFilter === 'anomalous' && product.status === 'normal') return false;
     if (statusFilter !== 'all' && statusFilter !== 'anomalous' && product.status !== statusFilter) return false;
     if (searchText && !product.name.includes(searchText) && !product.sku.includes(searchText)) return false;
     return true;
-  });
+  }), [products, categoryFilter, statusFilter, searchText]);
 
-  const alertCount = mockProducts.filter(p => p.status !== 'normal').length;
+  const alertCount = useMemo(() => products.filter(p => p.status !== 'normal').length, [products]);
 
-  const summaryCards = [
-    { label: 'Total', count: mockProducts.length, key: 'all' as const, activeColor: '#8B9EAD', inactiveBg: '#E8F0F5', inactiveText: '#8B9EAD', inactiveBorder: '#CCDBE5' },
-    { label: 'Low Stock', count: mockProducts.filter(p => p.status === 'low').length, key: 'low' as const, activeColor: '#C4A97A', inactiveBg: '#F5EDE0', inactiveText: '#A87A45', inactiveBorder: '#DECA9A' },
-    { label: 'Out of Stock', count: mockProducts.filter(p => p.status === 'out').length, key: 'out' as const, activeColor: '#BF8888', inactiveBg: '#EFE5E5', inactiveText: '#BF8888', inactiveBorder: '#D4AAAA' },
-    { label: 'Overstock', count: mockProducts.filter(p => p.status === 'overstock').length, key: 'overstock' as const, activeColor: '#8B9EAD', inactiveBg: '#E8F0F5', inactiveText: '#8B9EAD', inactiveBorder: '#CCDBE5' },
-  ];
+  const summaryCards = useMemo(() => [
+    { label: 'Total', count: products.length, key: 'all' as const, activeColor: '#8B9EAD', inactiveBg: '#E8F0F5', inactiveText: '#8B9EAD', inactiveBorder: '#CCDBE5' },
+    { label: 'Low Stock', count: products.filter(p => p.status === 'low').length, key: 'low' as const, activeColor: '#C4A97A', inactiveBg: '#F5EDE0', inactiveText: '#A87A45', inactiveBorder: '#DECA9A' },
+    { label: 'Out of Stock', count: products.filter(p => p.status === 'out').length, key: 'out' as const, activeColor: '#BF8888', inactiveBg: '#EFE5E5', inactiveText: '#BF8888', inactiveBorder: '#D4AAAA' },
+    { label: 'Overstock', count: products.filter(p => p.status === 'overstock').length, key: 'overstock' as const, activeColor: '#8B9EAD', inactiveBg: '#E8F0F5', inactiveText: '#8B9EAD', inactiveBorder: '#CCDBE5' },
+  ], [products]);
 
   // ── Field Mode ─────────────────────────────────────────────
   if (isField) {
@@ -80,7 +81,7 @@ export function MobileInventory() {
                 >
                   {tab.label}
                   {tab.key === 'anomalous' && <span className="ml-1" style={{ color: F.alertHighBorder }}>({alertCount})</span>}
-                  {tab.key === 'out' && <span className="ml-1" style={{ color: F.alertHighBorder }}>({mockProducts.filter(p => p.status === 'out').length})</span>}
+                  {tab.key === 'out' && <span className="ml-1" style={{ color: F.alertHighBorder }}>({products.filter(p => p.status === 'out').length})</span>}
                 </button>
               ))}
             </div>

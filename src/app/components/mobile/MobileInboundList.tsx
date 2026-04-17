@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, AlertTriangle, ChevronRight, Package, Clock, Zap, Store } from 'lucide-react';
-import { mockInboundOrders } from '../../data/mockData';
 import { MobileLayout } from './MobileLayout';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useMode } from '../../context/ModeContext';
+import { useAppData } from '../../context/AppDataContext';
 import { F } from '../../colors';
 
 const statusMap: Record<string, string> = {
   'Pending': 'Pending',
   'Completed': 'Completed',
+  'Partially Received': 'Partial',
 };
 
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   'Pending': { bg: '#E8F0F5', text: '#8B9EAD', border: '#CCDBE5' },
   'Completed': { bg: '#E5EEEC', text: '#6A9A7A', border: '#C8DDD9' },
+  'Partial': { bg: '#F5EDE0', text: '#A87A45', border: '#DECA9A' },
 };
 
 const priorityConfig = {
@@ -33,20 +35,21 @@ const statusTabConfig = [
   { key: 'Completed' as StatusTab, activeColor: '#6A9A7A', inactiveBg: '#E5EEEC', inactiveText: '#6A9A7A' },
 ];
 
-const statusCounts = (status: StatusTab) => {
-  if (status === 'All') return mockInboundOrders.length;
-  return mockInboundOrders.filter(o => statusMap[o.status] === status).length;
-};
-
 export function MobileInboundList() {
   const navigate = useNavigate();
   const { isField } = useMode();
+  const { inboundOrders } = useAppData();
   const [statusTab, setStatusTab] = useState<StatusTab>('All');
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   const [searchText, setSearchText] = useState('');
   const [fieldTab, setFieldTab] = useState<string>('All');
 
-  const filteredOrders = mockInboundOrders.filter(order => {
+  const statusCounts = (status: StatusTab) => {
+    if (status === 'All') return inboundOrders.length;
+    return inboundOrders.filter(o => statusMap[o.status] === status).length;
+  };
+
+  const filteredOrders = inboundOrders.filter(order => {
     const statusText = statusMap[order.status] || order.status;
     if (statusTab !== 'All' && statusText !== statusTab) return false;
     if (priorityFilter !== 'all' && order.priority !== priorityFilter) return false;
@@ -56,7 +59,7 @@ export function MobileInboundList() {
 
   // ── Field Mode ─────────────────────────────────────────────
   if (isField) {
-    const fieldFiltered = mockInboundOrders.filter(order => {
+    const fieldFiltered = inboundOrders.filter(order => {
       const statusText = statusMap[order.status] || order.status;
       if (fieldTab === 'Pending' && statusText !== 'Pending') return false;
       if (fieldTab === 'Partial' && statusText !== 'Partial') return false;
@@ -91,7 +94,7 @@ export function MobileInboundList() {
                   {tab}
                   {tab !== 'All' && (
                     <span className="ml-1 opacity-70">
-                      ({mockInboundOrders.filter(o => statusMap[o.status] === tab).length})
+                      ({inboundOrders.filter(o => statusMap[o.status] === tab).length})
                     </span>
                   )}
                 </button>

@@ -109,7 +109,7 @@ export function MobileReturnInspection() {
   const handleConfirm = () => {
     updateReturnOrderStatus(order.id, 'Completed');
     toast.success('Return inspection completed!', { description: `${order.orderId} archived, ${returnItems.length} items`, duration: 3000 });
-    setTimeout(() => navigate('/mobile'), 1200);
+    setTimeout(() => navigate('/mobile/return'), 1200);
   };
 
   const handleAnomalySubmit = (data: { type: string; description: string; photos: File[] }) => {
@@ -149,7 +149,7 @@ export function MobileReturnInspection() {
       <MobileLayout showNav={false}>
         <div className="min-h-screen" style={{ background: F.bg }}>
           <div className="p-4 flex items-center justify-between" style={{ background: F.header, borderBottom: `1.5px solid ${F.border}` }}>
-            <button onClick={() => navigate('/mobile')} className="flex items-center gap-2" style={{ color: F.accent }}>
+            <button onClick={() => navigate('/mobile/return')} className="flex items-center gap-2" style={{ color: F.accent }}>
               <ArrowLeft className="w-5 h-5" /><span>Back</span>
             </button>
             <div className="flex items-center gap-1" style={{ color: F.accent }}>
@@ -260,7 +260,7 @@ export function MobileReturnInspection() {
       <div className="min-h-screen" style={{ background: '#F7F6F4' }}>
         {/* Header */}
         <div className="p-4 flex items-center justify-between sticky top-0 z-10" style={{ background: '#F7F6F4', borderBottom: '1.5px solid #E5E0D8' }}>
-          <button onClick={() => navigate('/mobile')} className="flex items-center gap-1" style={{ color: '#9AA0A8' }}>
+          <button onClick={() => navigate('/mobile/return')} className="flex items-center gap-1" style={{ color: '#9AA0A8' }}>
             <ArrowLeft className="w-5 h-5" /><span className="text-sm">Back</span>
           </button>
           <span className="font-bold" style={{ color: '#2C3540' }}>Return Inspection</span>

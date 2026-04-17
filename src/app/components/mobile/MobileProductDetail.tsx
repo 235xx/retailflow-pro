@@ -7,10 +7,10 @@ import {
   ArrowLeft, Package, TrendingUp, TrendingDown,
   AlertTriangle, BarChart2, Tag, Zap, ShoppingCart,
 } from 'lucide-react';
-import { mockProducts } from '../../data/mockData';
 import { MobileLayout } from './MobileLayout';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useMode } from '../../context/ModeContext';
+import { useAppData } from '../../context/AppDataContext';
 import { F } from '../../colors';
 
 // ── Morandi status palette ────────────────────────────────
@@ -37,8 +37,9 @@ export function MobileProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isField } = useMode();
+  const { products } = useAppData();
 
-  const product = mockProducts.find(p => p.id === id);
+  const product = products.find(p => p.id === id);
 
   if (!product) {
     return (

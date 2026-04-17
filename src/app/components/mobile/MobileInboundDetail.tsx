@@ -2,7 +2,6 @@ import { F } from '../../colors';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, FileText, CheckCircle2, Zap, CheckCheck, Store, Clock } from 'lucide-react';
-import { mockInboundOrders } from '../../data/mockData';
 import { AnomalyReportDialog } from '../dialogs/AnomalyReportDialog';
 import { MobileLayout } from './MobileLayout';
 import { ModeSwitcher } from './ModeSwitcher';
@@ -14,15 +13,16 @@ import { toast } from 'sonner';
 const statusMap: Record<string, string> = {
   'Pending': 'Pending',
   'Completed': 'Completed',
+  'Partially Received': 'Partially Received',
 };
 
 export function MobileInboundDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { isField } = useMode();
-  const { addAlert, reportedInboundItems, addReportedInboundItems } = useAppData();
+  const { addAlert, reportedInboundItems, addReportedInboundItems, inboundOrders, updateInboundOrderStatus, addToInventory } = useAppData();
 
-  const order = mockInboundOrders.find(o => o.id === id);
+  const order = inboundOrders.find(o => o.id === id);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showAnomalyDialog, setShowAnomalyDialog] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -61,8 +61,17 @@ export function MobileInboundDetail() {
 
   const handleConfirm = () => {
     setConfirmed(true);
+
+    // Update order status to Completed
+    updateInboundOrderStatus(order.id, 'Completed');
+
+    // Add items to inventory
+    order.items.forEach(item => {
+      addToInventory(item.sku, item.actual);
+    });
+
     toast.success('Inbound confirmed!', {
-      description: `${order.orderId} has been inspected, ${order.items.length} items`,
+      description: `${order.orderId} has been inspected, ${order.items.length} items added to inventory`,
       duration: 3000,
     });
     setTimeout(() => navigate('/mobile/inbound'), 1200);
@@ -246,7 +255,7 @@ export function MobileInboundDetail() {
             {order.items.map((item) => {
               const isReported = reportedSet.has(item.id);
               return (
-                <div key={item.id} className="rounded-xl p-4" style={{ background: '#ffffff', border: `1.5px solid ${isReported ? '#C8DDD9' : '#E5E0D8'}` }}>
+                <div key={item.id} className="rounded-xl p-4 cursor-pointer" style={{ background: '#ffffff', border: `1.5px solid ${isReported ? '#C8DDD9' : selectedItems.has(item.id) ? '#8B9EAD' : '#E5E0D8'}` }} onClick={() => toggleItem(item.id)}>
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded mt-0.5 flex-shrink-0 flex items-center justify-center" style={{ border: `2px solid ${selectedItems.has(item.id) ? '#8B9EAD' : '#E5E0D8'}`, background: selectedItems.has(item.id) ? '#8B9EAD' : 'white' }}>
                       {selectedItems.has(item.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
